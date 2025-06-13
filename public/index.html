@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Asistencia</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 40px;
+    }
+    #reader, #manualForm {
+      display: none;
+      margin: 20px auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    input {
+      padding: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registro de Asistencia</h2>
+
+  <button onclick="mostrarCamara()">📷 Registrar por cámara</button>
+  <button onclick="mostrarManual()">✍️ Registrar manualmente</button>
+
+  <div id="reader" style="width: 300px;"></div>
+
+  <div id="manualForm">
+    <input type="text" id="dniInput" placeholder="Ingresa tu DNI">
+    <button onclick="enviarDNI()">Registrar</button>
+  </div>
+
+  <p id="mensaje"></p>
+
+  <br>
+  <a href="/descargar">📥 Descargar Excel de Registros</a>
+
+  <script>
+    const scanner = new Html5Qrcode("reader");
+
+    function mostrarCamara() {
+      document.getElementById("reader").style.display = "block";
+      document.getElementById("manualForm").style.display = "none";
+      iniciarEscaneo();
+    }
+
+    function mostrarManual() {
+      document.getElementById("manualForm").style.display = "block";
+      document.getElementById("reader").style.display = "none";
+      scanner.stop().catch(() => {});
+    }
+
+    function iniciarEscaneo() {
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices.length) {
+          scanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            qrCodeMessage => {
+              scanner.stop();
+              enviarDNI(qrCodeMessage);
+            },
+            error => {}
+          );
+        }
+      });
+    }
+
+    function enviarDNI(dniManual) {
+      const dni = dniManual || document.getElementById("dniInput").value;
+      if (!dni) return alert("Ingrese un DNI válido");
+
+      fetch('/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('mensaje').innerText = data.msg;
+      });
+    }
+  </script>
+</body>
+</html>
