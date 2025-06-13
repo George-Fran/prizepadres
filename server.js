@@ -55,6 +55,20 @@ function guardarRegistro(dni) {
   xlsx.writeFile(wb, REGISTRO_FILE);
 }
 
+app.post('/verificar', (req, res) => {
+  const dni = req.body.dni?.trim();
+  if (!dni) return res.json({ ok: false, msg: 'DNI inválido' });
+
+  const listaPadres = cargarPadres();
+  const nombre = buscarNombrePorDni(dni);
+
+  if (!listaPadres.includes(dni)) {
+    return res.json({ ok: false, msg: '❌ Tu no eres padre' });
+  }
+
+  res.json({ ok: true, msg: `👤 Padre encontrado: ${nombre}` });
+});
+
 
 app.post('/registrar', (req, res) => {
   const { dni } = req.body;

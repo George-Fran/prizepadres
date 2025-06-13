@@ -85,51 +85,83 @@
 
   <a href="/descargar">📥 Descargar Excel de Registros</a>
 
-  <script>
-    const scanner = new Html5Qrcode("reader");
+<script>
+  const scanner = new Html5Qrcode("reader");
+  let dniEscaneado = "";
 
-    function mostrarCamara() {
-      document.getElementById("reader").style.display = "block";
-      document.getElementById("manualForm").style.display = "none";
-      iniciarEscaneo();
-    }
+  function mostrarCamara() {
+    document.getElementById("reader").style.display = "block";
+    document.getElementById("manualForm").style.display = "none";
+    document.getElementById("mensaje").innerText = "";
+    document.getElementById("confirmarBtn")?.remove();
+    iniciarEscaneo();
+  }
 
-    function mostrarManual() {
-      document.getElementById("manualForm").style.display = "block";
-      document.getElementById("reader").style.display = "none";
-      scanner.stop().catch(() => {});
-    }
+  function mostrarManual() {
+    document.getElementById("manualForm").style.display = "block";
+    document.getElementById("reader").style.display = "none";
+    scanner.stop().catch(() => {});
+    document.getElementById("mensaje").innerText = "";
+    document.getElementById("confirmarBtn")?.remove();
+  }
 
-    function iniciarEscaneo() {
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices.length) {
-          scanner.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 200 },
-            qrCodeMessage => {
-              scanner.stop();
-              enviarDNI(qrCodeMessage);
-            },
-            error => {}
-          );
+  function iniciarEscaneo() {
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices.length) {
+        scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 200 },
+          qrCodeMessage => {
+            scanner.stop();
+            verificarDNI(qrCodeMessage.trim());
+          },
+          error => {}
+        );
+      }
+    });
+  }
+
+  function verificarDNI(dni) {
+    fetch('/verificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dni })
+    })
+    .then(res => res.json())
+    .then(data => {
+      dniEscaneado = dni;
+      document.getElementById('mensaje').innerText = data.msg;
+      document.getElementById('mensaje').style.color = data.ok ? 'green' : 'red';
+
+      // Mostrar botón de confirmar si el DNI es válido
+      if (data.ok) {
+        if (!document.getElementById('confirmarBtn')) {
+          const btn = document.createElement('button');
+          btn.id = 'confirmarBtn';
+          btn.innerText = '✅ Confirmar Registro';
+          btn.onclick = () => enviarDNI(dniEscaneado);
+          document.body.appendChild(btn);
         }
-      });
-    }
+      } else {
+        document.getElementById('confirmarBtn')?.remove();
+      }
+    });
+  }
 
-    function enviarDNI(dniManual) {
-      const dni = dniManual || document.getElementById("dniInput").value;
-      if (!dni) return alert("Ingrese un DNI válido");
+  function enviarDNI(dni) {
+    fetch('/registrar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dni })
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('mensaje').innerText = data.msg;
+      document.getElementById('mensaje').style.color = 'green';
+      document.getElementById('confirmarBtn')?.remove();
+    });
+  }
+</script>
 
-      fetch('/registrar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni })
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('mensaje').innerText = data.msg;
-      });
-    }
-  </script>
 </body>
 </html>
