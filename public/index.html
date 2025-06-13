@@ -1,28 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Registro de Asistencia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin-top: 40px;
+    * {
+      box-sizing: border-box;
     }
-    #reader, #manualForm {
-      display: none;
-      margin: 20px auto;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
     }
     button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
+      width: 90%;
+      max-width: 300px;
+      padding: 14px;
+      margin: 10px 0;
+      font-size: 18px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
     }
+    button:hover {
+      background-color: #004d99;
+    }
+    #reader {
+      display: none;
+      margin: 20px auto;
+      width: 100%;
+      max-width: 320px;
+    }
+    #manualForm {
+      display: none;
+      margin-top: 20px;
+    }
     input {
-      padding: 8px;
+      width: 90%;
+      max-width: 300px;
+      padding: 12px;
       font-size: 16px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #mensaje {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #006600;
+    }
+    a {
+      display: block;
+      margin-top: 30px;
+      color: #0066cc;
+      font-size: 16px;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -32,7 +74,7 @@
   <button onclick="mostrarCamara()">📷 Registrar por cámara</button>
   <button onclick="mostrarManual()">✍️ Registrar manualmente</button>
 
-  <div id="reader" style="width: 300px;"></div>
+  <div id="reader"></div>
 
   <div id="manualForm">
     <input type="text" id="dniInput" placeholder="Ingresa tu DNI">
@@ -41,7 +83,6 @@
 
   <p id="mensaje"></p>
 
-  <br>
   <a href="/descargar">📥 Descargar Excel de Registros</a>
 
   <script>
@@ -64,7 +105,7 @@
         if (devices.length) {
           scanner.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
+            { fps: 10, qrbox: 200 },
             qrCodeMessage => {
               scanner.stop();
               enviarDNI(qrCodeMessage);
